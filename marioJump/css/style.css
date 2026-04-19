@@ -13,7 +13,47 @@ body {
     position: relative;
     overflow: hidden;
     background: linear-gradient(#87ceeb, #e0f6ff);
+    
 }
+
+.game-board::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(#0b1d3a, #000000);
+    opacity: 0;
+    animation: night-fade 30s infinite alternate;
+}
+
+
+.stars{
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    z-index: 0;
+    opacity: 0;
+
+    animation: stars-appear 30s infinite alternate;
+}
+
+.stars::after{
+    content: "";
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    box-shadow:
+        50px 80px white,
+        120px 150px white,
+        200px 60px white,
+        300px 120px white,
+        400px 90px white,
+        500px 200px white,
+        600px 140px white;
+    animation: twinkle 2s infinite alternate;
+}
+
+
 .pipe{
     position: absolute;
     bottom: 0;
@@ -36,6 +76,7 @@ body {
     width: 550px;
     animation: clouds-animation 20s infinite linear;
 }
+
 
 @keyframes pipe-animation{
     from {
@@ -73,4 +114,21 @@ body {
         right: 100%;
     }
     
+}
+
+@keyframes night-fade {
+    0% { opacity: 0; }   
+    50% { opacity: 0.3; }  
+    100% { opacity: 0.8; } 
+}
+
+@keyframes stars-appear {
+    0% { opacity: 0; }
+    70% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+@keyframes twinkle {
+    from { opacity: 0.3; }
+    to { opacity: 1; }
 }
