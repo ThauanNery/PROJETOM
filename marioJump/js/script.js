@@ -1,195 +1,135 @@
 const mario = document.querySelector('.mario');
 const gameBoard = document.querySelector('.game-board');
-const enemies = []; 
-const fireballs = []; 
-
-const GROUND_LEVEL = 100; 
-let positionX = 200; 
-let positionY = 150; 
-let velocityY = 0;
-let gravity = 0.8;
-let isJumping = false;
-const MARIO_WIDTH = 60; 
-
-let lastPlatformX = 400;
-let lastPlatformY = 150;
-const platforms = [];
-const keys = {};
-
-let timePoints = 0;
-let damagePoints = 0;
+const gameOverScreen = document.querySelector('.game-over-screen');
 const timeDisplay = document.getElementById('time-score');
 const damageDisplay = document.getElementById('damage-score');
 
-setInterval(() => {
-    timePoints++;
-    if(timeDisplay) timeDisplay.innerText = timePoints;
+const enemies = []; const fireballs = []; const platforms = []; const keys = {};
+let isGameOver = false; let positionX = 50; let positionY = 150; 
+let velocityY = 0; let gravity = 0.8; let isJumping = false;
+let lastPlatformX = 0; let lastPlatformY = 150;
+let timePoints = 0; let damagePoints = 0;
+
+// Cronômetro
+const gameTimer = setInterval(() => {
+    if (!isGameOver) { timePoints++; if(timeDisplay) timeDisplay.innerText = timePoints; }
 }, 1000);
 
-function registerStaticPlatforms() {
-    const staticPlatforms = document.querySelectorAll('.platform');
-    staticPlatforms.forEach(p => {
-        const x = p.offsetLeft;
-        const y = parseInt(p.style.bottom) || 150;
-        const width = p.offsetWidth || 120;
-        platforms.push({ el: p, x, y, width });
-    });
+// Controles
+document.addEventListener("keydown", (e) => {
+    keys[e.code] = true;
+    if (e.code === "KeyF") shoot();
+    if (isGameOver && e.code === "KeyR") location.reload();
+});
+document.addEventListener("keyup", (e) => keys[e.code] = false);
+
+function shoot() {
+    if (isGameOver) return;
+    const fb = document.createElement("div");
+    fb.classList.add("hadouken");
+    fb.style.left = (positionX + 40) + "px";
+    fb.style.bottom = (positionY + 30) + "px";
+    gameBoard.appendChild(fb);
+    fireballs.push({ el: fb, x: positionX + 40, y: positionY + 30, speed: 12 });
+}
+
+function triggerGameOver() {
+    if (isGameOver) return; isGameOver = true;
+    mario.src = "./images/game-over.png";
+    mario.style.animation = 'none';
+    if (gameOverScreen) {
+        gameOverScreen.innerHTML = 'GAME OVER<br><span style="font-size: 25px; color: white;">Aperte R para Reiniciar</span>';
+        gameOverScreen.classList.add('show-game-over');
+    }
+    document.body.classList.add('game-over-active');
+    clearInterval(gameTimer);
+}
+
+function createStars() {
+    for (let i = 0; i < 150; i++) {
+        const star = document.createElement("div");
+        star.classList.add("star");
+        star.style.left = Math.random() * 30000 + "px";
+        star.style.top = Math.random() * 400 + "px";
+        star.style.animationDelay = `${Math.random() * 2}s, 0s`;
+        gameBoard.appendChild(star);
+    }
 }
 
 function createPlatform() {
     let width = Math.random() > 0.7 ? 80 : 150;
-    const gap = 160 + Math.random() * 100; 
-    let x = lastPlatformX + gap;
-    const maxStep = 70;
-    let y = lastPlatformY + (Math.random() * maxStep * 2 - maxStep);
-    y = Math.max(160, Math.min(y, 350)); 
-
+    let x = lastPlatformX + (170 + Math.random() * 100);
+    let y = Math.max(160, Math.min(lastPlatformY + (Math.random() * 140 - 70), 350)); 
     const p = document.createElement("div");
     p.classList.add("platform");
-    p.style.width = width + "px";
-    p.style.left = x + "px";
-    p.style.bottom = y + "px";
+    p.style.width = width + "px"; p.style.left = x + "px"; p.style.bottom = y + "px";
     gameBoard.appendChild(p);
-
-    const platformObj = { el: p, x, y, width };
-    platforms.push(platformObj);
-
-    if (Math.random() > 0.7) { 
-        createEnemy(platformObj);
-    }
-
-    lastPlatformX = x + width; 
-    lastPlatformY = y;
+    platforms.push({ el: p, x, y, width });
+    if (Math.random() > 0.6) createEnemy(platforms[platforms.length-1]);
+    lastPlatformX = x + width; lastPlatformY = y;
 }
 
-function createEnemy(platform) {
+function createEnemy(p) {
     const e = document.createElement("div");
     e.classList.add("enemy");
-    let enemyX = platform.x + (platform.width / 4);
-    let direction = 1; 
-
-    e.style.left = enemyX + "px";
-    e.style.bottom = (platform.y + 20) + "px"; 
+    let ex = p.x + (p.width / 4);
+    e.style.left = ex + "px"; e.style.bottom = (p.y + 20) + "px";
     gameBoard.appendChild(e);
-
-    enemies.push({
-        el: e,
-        x: enemyX,
-        y: platform.y + 20,
-        platform: platform,
-        direction: direction,
-        speed: 2
-    });
+    enemies.push({ el: e, x: ex, y: p.y + 20, platform: p, direction: 1, speed: 2 });
 }
-
-function shoot() {
-    const fb = document.createElement("div");
-    fb.classList.add("hadouken");
-    let fbX = positionX + 60; 
-    let fbY = positionY + 30; 
-    fb.style.left = fbX + "px";
-    fb.style.bottom = fbY + "px";
-    gameBoard.appendChild(fb);
-    fireballs.push({ el: fb, x: fbX, y: fbY, speed: 12 });
-}
-
-registerStaticPlatforms();
-for(let i = 0; i < 10; i++) createPlatform();
-
-document.addEventListener("keydown", (e) => {
-    keys[e.code] = true;
-    if (e.code === "KeyF") shoot();
-});
-document.addEventListener("keyup", (e) => keys[e.code] = false);
 
 function loop() {
+    if (isGameOver) return;
     let oldY = positionY;
-    
     if (keys["ArrowRight"]) positionX += 8;
     if (keys["ArrowLeft"]) positionX -= 8;
-
     if (positionX < gameBoard.scrollLeft) positionX = gameBoard.scrollLeft;
+    if (keys["Space"] && !isJumping) { velocityY = 16; isJumping = true; }
 
-    if (keys["Space"] && !isJumping) {
-        velocityY = 16;
-        isJumping = true;
-    }
-
-    velocityY -= gravity;
-    positionY += velocityY;
-
+    velocityY -= gravity; positionY += velocityY;
     let landed = false;
-    if (velocityY <= 0) {
-        platforms.forEach(p => {
-            const isInsideX = (positionX + MARIO_WIDTH > p.x) && (positionX < p.x + p.width);
-            const crossedTop = oldY >= p.y && positionY <= p.y;
-            if (isInsideX && crossedTop) {
-                positionY = p.y;
-                velocityY = 0;
-                isJumping = false;
-                landed = true;
-            }
-        });
-    }
+    platforms.forEach(p => {
+        if (velocityY <= 0 && positionX + 30 > p.x && positionX < p.x + p.width - 10) {
+            if (oldY >= p.y && positionY <= p.y) { positionY = p.y; velocityY = 0; isJumping = false; landed = true; }
+        }
+    });
 
-    if (!landed && positionY <= GROUND_LEVEL) {
-        alert("🔥 O CHÃO É LAVA! GAME OVER 🔥");
-        location.reload();
-        return;
-    }
-
+    if (!landed && positionY <= 100) return triggerGameOver();
     if (positionX > lastPlatformX - 1200) createPlatform();
 
-    enemies.forEach((en, index) => {
+    enemies.forEach((en, enIdx) => {
         en.x += en.speed * en.direction;
-        if (en.x <= en.platform.x || en.x + 40 >= en.platform.x + en.platform.width) {
-            en.direction *= -1;
-        }
+        if (en.x <= en.platform.x || en.x + 35 >= en.platform.x + en.platform.width) en.direction *= -1;
         en.el.style.left = en.x + "px";
-
-        const hitX = positionX + 40 > en.x && positionX < en.x + 40;
-        const hitY = positionY + 60 > en.y && positionY < en.y + 40;
-
-        if (hitX && hitY) {
-            alert("GAME OVER!");
-            location.reload();
-        }
-    });
-
-    fireballs.forEach((fb, fbIndex) => {
-        fb.x += fb.speed;
-        fb.el.style.left = fb.x + "px";
-
-        if (fb.x > positionX + 1000) {
-            fb.el.remove();
-            fireballs.splice(fbIndex, 1);
-            return;
-        }
-
-        enemies.forEach((en, enIndex) => {
-            const shotX = fb.x + 30 > en.x && fb.x < en.x + 40;
-            const shotY = fb.y + 20 > en.y && fb.y < en.y + 40;
-
-            if (shotX && shotY) {
-                en.el.remove();
-                enemies.splice(enIndex, 1);
-                fb.el.remove();
-                fireballs.splice(fbIndex, 1);
-                
-                damagePoints += 100;
-                if(damageDisplay) damageDisplay.innerText = damagePoints;
+        if (positionX < en.x + 30 && positionX + 40 > en.x && positionY < en.y + 35 && positionY + 50 > en.y) triggerGameOver();
+        
+        fireballs.forEach((fb, fbIdx) => {
+            if (fb.x < en.x + 40 && fb.x + 30 > en.x && fb.y < en.y + 40 && fb.y + 20 > en.y) {
+                en.el.remove(); enemies.splice(enIdx, 1);
+                fb.el.remove(); fireballs.splice(fbIdx, 1);
+                damagePoints += 100; if(damageDisplay) damageDisplay.innerText = damagePoints;
             }
         });
     });
 
-    mario.style.bottom = positionY + "px";
-    mario.style.left = positionX + "px";
+    fireballs.forEach((fb, idx) => {
+        fb.x += fb.speed; fb.el.style.left = fb.x + "px";
+        if (fb.x > positionX + 800) { fb.el.remove(); fireballs.splice(idx, 1); }
+    });
 
-    if (positionX > 400) {
-        gameBoard.scrollLeft = positionX - 400;
-    }
-
+    mario.style.bottom = positionY + "px"; mario.style.left = positionX + "px";
+    if (positionX > 400) gameBoard.scrollLeft = positionX - 400;
     requestAnimationFrame(loop);
 }
 
-loop();
+function initGame() {
+    createStars();
+    const startP = document.createElement("div");
+    startP.classList.add("platform");
+    startP.style.width = "300px"; startP.style.left = "0px"; startP.style.bottom = "150px";
+    gameBoard.appendChild(startP);
+    platforms.push({ el: startP, x: 0, y: 150, width: 300 });
+    lastPlatformX = 300; for(let i = 0; i < 10; i++) createPlatform();
+    loop();
+}
+initGame();

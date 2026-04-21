@@ -1,34 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="./css/style.css">
-        <script src="./js/script.js" defer></script>
-
-        <title>Mario Jump</title>
-    </head>
-    <body>
-        <div class="game-board">
-
-            <div class="scoreboard">
-                <span id="time-score">0</span>
-                <span id="damage-score">0</span>
-            </div>
-
-            <div class="ground"></div>
-            <div class="ground"></div>
-
-            <div class="platform" style="left:200px; bottom:150px;"></div>
-            <div class="platform" style="left:400px; bottom:220px;"></div>
-            <div class="platform" style="left:650px; bottom:180px;"></div>
-
-            <div class="platform"></div>
-
-            <img src="./images/clouds.png" class="clouds">
-
-            <img src="./images/mario.gif" class="mario">
-
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="./js/script.js" defer></script>
+    <title>Mario Jump - Versão Final</title>
+</head>
+<body>
+    <div class="game-board">
+        <div class="scoreboard">
+            Tempo: <span id="time-score">0</span>s | 
+            Dano: <span id="damage-score">0</span>
         </div>
-    </body>   
+
+        <div class="ground"></div>
+        <img src="./images/clouds.png" class="clouds">
+        <img src="./images/mario.gif" class="mario">
+    </div>
+
+    <div class="game-over-screen"></div>
+</body>
 </html>
